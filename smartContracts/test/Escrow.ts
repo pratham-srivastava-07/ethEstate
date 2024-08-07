@@ -1,6 +1,7 @@
 import {ethers} from "hardhat"
 
-import expect from "chai"
+import {expect} from "chai"
+
 
 function tokens(n: any) {
   return ethers.parseUnits(n.toString(), 'ethers');  // conversion of currency to tokens
@@ -8,19 +9,30 @@ function tokens(n: any) {
 
 describe('Escrow', () => {
   let buyer, seller, inspector, lender;
-  let realEstate;
-  it('returns the nftAddress', async () => {
-    
-    [buyer, seller, inspector, lender] =  await ethers.getSigners()
+  let realEstate: any, escrow: any;
 
-    const RealEstate = await ethers.getContractFactory('RealEstate')
-     realEstate = await RealEstate.deploy() // deploys nft on blockchain, basically NFT contract
-     
-    let txn = await realEstate.connect(seller).mintNewToken("https://ipfs.io/ipfs/QmTudSYeM7mz3PkYEWXWqPjomRPHogcMFSq7XAvsvsgAPS")
-    // console.log(realEstate);
-    await txn.wait(); // minted a single property
+  it("returns nft address ", async () => {
     
-    const Escrow = await ethers.getContractFactory('Escrow');
-    const escrowContract = await Escrow.deploy(realEstate.address, seller.address, lender.address, inspector.address)
+    [buyer, seller, inspector, lender] = await ethers.getSigners()
+    const RealEstate = await ethers.getContractFactory('RealEstate');
+    realEstate = await RealEstate.deploy(); // deploys nft on blockchain, basically NFT contract
+
+    // console.log(realEstate.address);
+
+    let transaction = await realEstate.connect(seller).mintNewToken("https://ipfs.io/ipfs/QmTudSYeM7mz3PkYEWXWqPjomRPHogcMFSq7XAvsvsgAPS")
+    await transaction.wait()
+
+    const Escrow = await ethers.getContractFactory('Escrow')
+    escrow = await Escrow.deploy(
+        realEstate.address,
+        seller.address,
+        inspector.address,
+        lender.address
+    )
+    // const result = await escrow.nftAddress();
+    // // expect(result).to.be.equal(realEstate.address)
+    // const result = await escrow.seller();
+    // expect(result).to.be.equal(seller.address)
   })
+
 })
