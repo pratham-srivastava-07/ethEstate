@@ -38,7 +38,7 @@ contract Escrow {
 
     Property[] public properties;
 
-    function listProperty() public returns(uint[] memory) {
-        
+    function listProperty(uint _nftId) public {
+        IERC721(nftAddress).transferFrom(msg.sender, address(this), _nftId);
     }
 }
