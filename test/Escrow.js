@@ -2,7 +2,7 @@ const { expect } = require('chai');
 const { ethers } = require('hardhat');
 
 function tokens(n) {
-  return ethers.parseUnits(n.toString(), 'ethers');  // conversion of currency to tokens
+  return ethers.utils.parseUnits(n.toString(), 'ether');  // ether => wei
 }
 
 describe('Escrow', () => {
@@ -25,6 +25,13 @@ describe('Escrow', () => {
         inspector.address,
         lender.address
     )
+    // approve from seller whi;e taking out nft from wallet
+    transaction = await realEstate.connect(seller).approve(escrow.address, 1);
+    await transaction.wait()
+
+    // list that to escrow
+    transaction = await escrow.connect(seller).listProperty(1, tokens(10), buyer.address, tokens(5));
+    await transaction.wait();
   })
 
   describe('Deployement', () => {
@@ -49,5 +56,41 @@ describe('Escrow', () => {
       expect(result).to.be.equal(realEstate.address);
     })
 
+  })
+
+  describe('Listing', () => {
+    
+    it('lists property from wallet to escrow contract', async() => {
+      expect(await realEstate.ownerOf(1)).to.be.equal(escrow.address);
+    })
+
+    it('updates as listed', async () => {
+      const res = await escrow.isListed(1);
+      expect(res).to.be.equal(true);
+    })
+
+    it('returns purchasePrice', async ()=> {
+      const result = await escrow.purchasePrice(1);
+      expect(result).to.be.equal(tokens(10));
+    })
+
+    it('returns buyer address', async () => {
+      const res = await escrow.buyer(1);
+      expect(res).to.be.equal(buyer.address);
+    })
+
+    it('returns escrowAmount', async () => {
+      const res = await escrow.escrowAmount(1);
+      expect(res).to.be.equal(tokens(5));
+    })
+  })
+
+  describe('Balances', () => {
+    it('returns balance deposited', async () => {
+      let transaction = await escrow.connect(buyer).depositMoney(1, {value: tokens(5)});
+      await transaction.wait();
+      const res = await escrow.getBalance();
+      expect(res).to.be.equal(tokens(5));
+    })
   })
 })
