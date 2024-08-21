@@ -15,6 +15,8 @@ contract Escrow {
     mapping (uint => uint) public purchasePrice;
     mapping (uint => uint) public escrowAmount;
     mapping (uint => address) public buyer;
+    mapping (uint => bool) public status;
+    mapping (uint => mapping (address => bool)) public approval;
 
     address public lender; 
     address public inspector; 
@@ -48,6 +50,10 @@ contract Escrow {
         require(msg.sender == buyer[_nftID], "only buyer of NFT can call this function");
         _;
     }
+    modifier onlyInspector() {
+        require(msg.sender == inspector, "Only inspector can run this func");
+        _;
+    }
 
     function listProperty(uint _nftId, uint _purchasePrice, address _buyer, uint _escrowAmount) public payable onlyOwner {
         IERC721(nftAddress).transferFrom(msg.sender, address(this), _nftId);  // making an external call to the transferFrom function of the contract at nftAddress
@@ -65,5 +71,22 @@ contract Escrow {
 
     function getBalance() public view returns(uint256) {
         return address(this).balance;
+    }
+
+    function inspectionStatus(uint _nftID, bool _isPassed) public onlyInspector {
+        status[_nftID] = _isPassed;
+    }
+
+
+    function getApproval(uint _nftID) public {
+        approval[_nftID][msg.sender] = true;
+    }
+
+    function finalizeSale(uint _nftID) public payable {
+        require(status[_nftID]);
+        require(approval[_nftID][buyer[_nftID]]);
+        require(approval[_nftID][seller]);
+        require(approval[_nftID][lender]);
+        
     }
 }

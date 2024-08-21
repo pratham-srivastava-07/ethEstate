@@ -93,4 +93,30 @@ describe('Escrow', () => {
       expect(res).to.be.equal(tokens(5));
     })
   })
+
+  describe('Inspection', () => {
+    it('returns inspected amount', async () => {
+      let transaction = await escrow.connect(inspector).inspectionStatus(1, true);
+      await transaction.wait();
+      const res = await escrow.status(1);
+      expect(res).to.be.equal(true);
+    })
+  })
+
+  describe('Approval', () => {
+    it('returns approval status', async () => {
+      let transaction = await escrow.connect(seller).getApproval(1);
+      await transaction.wait();
+
+      transaction = await escrow.connect(buyer).getApproval(1);
+      await transaction.wait();
+
+      transaction = await escrow.connect(lender).getApproval(1);
+      await transaction.wait();
+
+      expect(await escrow.approval(1, seller.address)).to.be.equal(true);
+      expect(await escrow.approval(1, buyer.address)).to.be.equal(true);
+      expect(await escrow.approval(1, lender.address)).to.be.equal(true);
+    })
+  })
 })
