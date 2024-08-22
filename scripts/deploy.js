@@ -6,6 +6,11 @@
 // global scope, and execute the script.
 const hre = require("hardhat");
 
+
+function tokens(n) {
+  return ethers.utils.parseUnits(n.toString(), 'ether');  // ether => wei
+}
+
 async function main() {
   [buyer, seller, inspector, lender] = await ethers.getSigners()
 
@@ -29,17 +34,17 @@ async function main() {
 
 
     for(let i = 0; i<3; i++) {
-      let transaction = await escrow.connect(seller).getApproval(escrow.address, i+1);
+      let transaction = await realEstate.connect(seller).approve(escrow.address, i+1);
       await transaction.wait()
     }
 
-  transaction = await escrow.connect(seller).list(1, tokens(20), buyer.address,  tokens(10))
+  transaction = await escrow.connect(seller).listProperty(1, tokens(20), buyer.address,  tokens(10))
   await transaction.wait()
 
-  transaction = await escrow.connect(seller).list(2, tokens(15), buyer.address,  tokens(5))
+  transaction = await escrow.connect(seller).listProperty(2, tokens(15), buyer.address,  tokens(5))
   await transaction.wait()
 
-  transaction = await escrow.connect(seller).list(3, tokens(10), buyer.address,  tokens(5))
+  transaction = await escrow.connect(seller).listProperty(3, tokens(10), buyer.address,  tokens(5))
   await transaction.wait()
 }
 
